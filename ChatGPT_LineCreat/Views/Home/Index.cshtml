@@ -1,0 +1,97 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Call Controller Example</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Call Controller Example</h1>
+
+    <form id="inputForm" method="post" action="@Url.Action("ChatGPTAns", "ChatGpt")">
+        <label for="inputText">Chat Text:</label>
+        <input type="text" id="inputText" name="Param" />
+        <button type="submit">Enter</button>
+    </form>
+
+    @* <form id="lastLogMessage" method="post" action="@Url.Action("Webhook", "LineBot")"> 
+    </form>*@
+
+    <div id="lastLogMessage">資料內容</div>
+    <p>@Model</p>
+
+    <div id="result"></div>
+
+    
+    <script>
+        $(document).ready(function () {
+            $('#inputForm').submit(function (event) {
+                event.preventDefault();
+
+
+                var formData = $(this).serialize();
+                $.post($(this).attr('action'), formData, function (data) {
+                    console.log(data);
+                    // 把取得的回應添加顯示在下方
+                    $('#result').append('<p>Chat Text: ' + $('#inputText').val() + '</p>');
+                    $('#result').append('<p>Response: ' + data + '</p>');
+
+                    // 清空輸入框内容
+                    $('#inputText').val('');
+                });
+            });
+        });
+
+        // $(document).ready(function () {
+        //     $.ajax({
+        //         type: 'POST',
+        //         url: '/api/LineBot/Webhook',
+        //         data: {}, // post内容
+                
+        //         success: function (data) {
+        //             console.log(data);
+
+        //             $('#lastLogMessage').append('<p>Response: ' + data + '</p>'); // 从返回的JSON对象中获取logMessage值并显示在页面上
+        //         },
+        //         error: function () {
+        //             $('#lastLogMessage').text('Error occurred.');
+        //         }
+        //     });
+        // });
+
+
+        function refreshData() {
+            $.ajax({
+                url: '@Url.Action("ProcessInput")',
+                type: 'POST',
+                dataType: 'json',
+                success: function (result) {
+                    $('#lastLogMessage').html(result.data);
+                    setTimeout(refreshData, 1000); // 刷新间隔（1秒）
+                },
+                error: function () {
+                    console.log('Failed to fetch data.');
+                    setTimeout(refreshData, 1000); // 刷新间隔（1秒）
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            refreshData(); // 初始化刷新数据
+        });
+    </script>
+
+
+
+
+
+
+
+</body>
+</html>
+
+
